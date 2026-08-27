@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tradutor CABUJA</title>
+<style>
+  :root {
+    --azul-900:#0b2d6b; --azul-700:#1d4ed8; --azul-500:#3b82f6; --azul-100:#dbeafe;
+    --verde-700:#047857; --verde-600:#059669; --verde-500:#10b981; --verde-100:#d1fae5;
+    --branco:#ffffff; --cinza-50:#f8fafc; --cinza-600:#475569; --cinza-800:#1e293b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Segoe UI', Roboto, Arial, sans-serif;
+    min-height:100vh;
+    background:linear-gradient(135deg, var(--azul-900) 0%, #124a8f 45%, #0d6b62 100%);
+    color:var(--cinza-800);
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px 14px 40px;
+  }
+  header { text-align:center; margin-bottom:18px; }
+  header h1 {
+    font-size:1.9rem; letter-spacing:2px; text-transform:uppercase;
+    background:linear-gradient(90deg, #93c5fd, #6ee7b7);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 12px rgba(0,0,0,.18);
+  }
+  header p { margin-top:6px; font-size:.92rem; color:var(--branco); opacity:.92; }
+  .container { width:100%; max-width:1100px; }
+
+  /* Campos lado a lado */
+  .dupla {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    align-items:stretch;
+  }
+  .painel {
+    background:var(--branco); border-radius:14px; padding:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.22);
+    display:flex; flex-direction:column; gap:10px;
+    border-top:4px solid var(--azul-500);
+    min-width:0;
+  }
+  .painel.verde { border-top-color:var(--verde-500); }
+  .cabecalho-painel { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .cabecalho-painel h2 { font-size:1.02rem; color:var(--azul-900); white-space:nowrap; }
+  .painel.verde .cabecalho-painel h2 { color:var(--verde-700); }
+  .badge {
+    font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+    background:var(--azul-100); color:var(--azul-700);
+    padding:3px 8px; border-radius:999px; white-space:nowrap;
+  }
+  .painel.verde .badge { background:var(--verde-100); color:var(--verde-700); }
+  textarea {
+    width:100%; min-height:150px; resize:vertical;
+    border:2px solid #e2e8f0; border-radius:10px;
+    padding:10px 12px; font-size:1rem; line-height:1.45;
+    font-family:inherit; color:var(--cinza-800); background:var(--cinza-50);
+    transition:border-color .2s, box-shadow .2s;
+  }
+  textarea:focus { outline:none; border-color:var(--azul-500); box-shadow:0 0 0 3px rgba(59,130,246,.18); }
+  .painel.verde textarea:focus { border-color:var(--verde-500); box-shadow:0 0 0 3px rgba(16,185,129,.18); }
+  .acoes { display:flex; gap:6px; flex-wrap:wrap; }
+  button {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:.82rem; font-weight:600; cursor:pointer;
+    padding:7px 12px; border-radius:8px; border:none;
+    transition:transform .12s, filter .2s;
+  }
+  button:hover { transform:translateY(-1px); filter:brightness(1.06); }
+  .btn-verde { background:var(--verde-600); color:var(--branco); box-shadow:0 3px 10px rgba(5,150,105,.35); }
+  .btn-azul { background:var(--azul-700); color:var(--branco); box-shadow:0 3px 10px rgba(29,78,216,.35); }
+  .btn-contorno { background:transparent; color:var(--cinza-600); border:1.5px solid #cbd5e1; }
+  .btn-contorno:hover { background:var(--cinza-50); }
+
+  .legenda {
+    background:rgba(255,255,255,.95); border-radius:14px; padding:18px;
+    margin-top:20px; box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  .legenda h2 { color:var(--azul-900); font-size:1.1rem; margin-bottom:12px; }
+  .grade { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:6px; }
+  .par {
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    background:var(--cinza-50); border:1px solid #e2e8f0; border-radius:8px;
+    padding:6px 3px; font-weight:700; font-size:.88rem;
+  }
+  .par .letra { color:var(--azul-700); }
+  .par .setinha { color:var(--verde-600); font-weight:700; }
+  .par.fixo { background:var(--verde-100); border-color:#a7f3d0; color:var(--verde-700); }
+  .regras { margin-top:14px; padding-top:12px; border-top:1px dashed #cbd5e1; font-size:.88rem; color:var(--cinza-600); display:flex; flex-direction:column; gap:5px; }
+  .regras strong { color:var(--cinza-800); }
+  #toast {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--verde-700); color:var(--branco);
+    padding:11px 20px; border-radius:999px; font-size:.88rem; font-weight:600;
+    box-shadow:0 6px 20px rgba(0,0,0,.3); opacity:0;
+    transition:transform .3s, opacity .3s; pointer-events:none; z-index:99;
+  }
+  #toast.mostrar { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* Responsivo: empilha em telas pequenas */
+  @media (max-width:760px){
+    .dupla { grid-template-columns:1fr; }
+    header h1 { font-size:1.5rem; }
+    textarea { min-height:130px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tradutor CABUJA</h1>
+  <p>Português ⇄ Código CABUJA, tradução automática nos dois sentidos</p>
+</header>
+
+<div class="container">
+  <div class="dupla">
+    <section class="painel">
+      <div class="cabecalho-painel">
+        <h2>🇧🇷 Português</h2>
+        <span class="badge">Original</span>
+      </div>
+      <textarea id="entradaPt" placeholder="Digite o texto em português aqui..."></textarea>
+      <div class="acoes">
+        <button class="btn-verde" onclick="copiar('entradaPt', this)">📋 Copiar</button>
+        <button class="btn-azul" onclick="colar('entradaPt')">📥 Colar</button>
+        <button class="btn-contorno" onclick="limpar('entradaPt')">Limpar</button>
+      </div>
+    </section>
+
+    <section class="painel verde">
+      <div class="cabecalho-painel">
+        <h2>🔤 Código CABUJA</h2>
+        <span class="badge">Traduzido</span>
+      </div>
+      <textarea id="entradaCodigo" placeholder="Digite o texto no código CABUJA aqui..."></textarea>
+      <div class="acoes">
+        <button class="btn-verde" onclick="copiar('entradaCodigo', this)">📋 Copiar</button>
+        <button class="btn-azul" onclick="colar('entradaCodigo')">📥 Colar</button>
+        <button class="btn-contorno" onclick="limpar('entradaCodigo')">Limpar</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="legenda">
+    <h2>🔑 Alfabeto CABUJA</h2>
+    <div class="grade" id="gradeLetras"></div>
+    <div class="regras">
+      <span><strong>Números, pontuação e espaços</strong> não mudam.</span>
+      <span><strong>Acentos são omitidos</strong> no código (ex.: <em>á</em> vira <em>a</em>).</span>
+      <span>A letra <strong>ç</strong> permanece igual na tradução.</span>
+      <span>A tradução funciona <strong>nos dois sentidos</strong> automaticamente.</span>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const mapa = {
+    a:'o', b:'d', c:'c', d:'b', e:'e', f:'f', g:'j', h:'h', i:'u', j:'g', k:'k',
+    l:'t', m:'n', n:'m', o:'a', p:'q', q:'p', r:'s', s:'r', t:'l', u:'i', v:'v',
+    w:'w', x:'x', y:'y', z:'z',
+    A:'O', B:'D', C:'C', D:'B', E:'E', F:'F', G:'J', H:'H', I:'U', J:'G', K:'K',
+    L:'T', M:'N', N:'M', O:'A', P:'Q', Q:'P', R:'S', S:'R', T:'L', U:'I', V:'V',
+    W:'W', X:'X', Y:'Y', Z:'Z'
+  };
+
+  function semAcentos(caractere) {
+    return caractere
+      .replace('ç','\u0001').replace('Ç','\u0002')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace('\u0001','ç').replace('\u0002','Ç');
+  }
+
+  function traduzir(texto) {
+    return Array.from(texto).map(c => {
+      const base = semAcentos(c);
+      return mapa[base] || base;
+    }).join('');
+  }
+
+  let atualizando = false;
+
+  document.getElementById('entradaPt').addEventListener('input', function () {
+    if (atualizando) return;
+    atualizando = true;
+    document.getElementById('entradaCodigo').value = traduzir(this.value);
+    atualizando = false;
+  });
+
+  document.getElementById('entradaCodigo').addEventListener('input', function () {
+    if (atualizando) return;
+    atualizando = true;
+    document.getElementById('entradaPt').value = traduzir(this.value);
+    atualizando = false;
+  });
+
+  function limpar(id) {
+    document.getElementById(id).value = '';
+    document.getElementById(id).dispatchEvent(new Event('input'));
+  }
+
+  function copiar(id, botao) {
+    const area = document.getElementById(id);
+    const concluir = () => {
+      const original = botao.innerHTML;
+      botao.innerHTML = '✅ Copiado!';
+      mostrarToast('Texto copiado!');
+      setTimeout(() => { botao.innerHTML = original; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(area.value).then(concluir).catch(() => {
+        area.select();
+        document.execCommand('copy');
+        concluir();
+      });
+    } else {
+      area.select();
+      document.execCommand('copy');
+      concluir();
+    }
+  }
+
+  function colar(id) {
+    const area = document.getElementById(id);
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText()
+        .then(texto => {
+          area.value = texto;
+          area.dispatchEvent(new Event('input'));
+          mostrarToast('Texto colado!');
+        })
+        .catch(() => pedirColarManual(area));
+    } else {
+      pedirColarManual(area);
+    }
+  }
+
+  function pedirColarManual(area) {
+    area.focus();
+    mostrarToast('Permissão indisponível. Use Ctrl+V no campo.');
+  }
+
+  let timerToast;
+  function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('mostrar');
+    clearTimeout(timerToast);
+    timerToast = setTimeout(() => t.classList.remove('mostrar'), 2200);
+  }
+
+  const pares = [
+    ['A','O'], ['B','D'], ['C','='], ['D','B'], ['E','='], ['F','='], ['G','J'], ['H','='],
+    ['I','U'], ['J','G'], ['K','='], ['L','T'], ['M','N'], ['N','M'], ['O','A'], ['P','Q'],
+    ['Q','P'], ['R','S'], ['S','R'], ['T','L'], ['U','I'], ['V','='], ['W','='], ['X','='],
+    ['Y','='], ['Z','=']
+  ];
+  const grade = document.getElementById('gradeLetras');
+  pares.forEach(([a,b]) => {
+    const div = document.createElement('div');
+    div.className = 'par' + (b === '=' ? ' fixo' : '');
+    if (b === '=') {
+      div.innerHTML = '<span class="letra">' + a + '</span><span class="setinha">=</span><span>' + a + '</span>';
+    } else {
+      div.innerHTML = '<span class="letra">' + a + '</span><span class="setinha">⇄</span><span class="letra">' + b + '</span>';
+    }
+    grade.appendChild(div);
+  });
+</script>
+</body>
+</html>
